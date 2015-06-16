@@ -8,23 +8,23 @@ import java.util.stream.Collectors;
 
 public class OnsetProcessor {
 
-	private AudioFile audiofile;
-	// this List should contain your results of the onset detection step (onset
-	// times in seconds)
-	private List<Double> onsets;
-	// this may contain your intermediate results (in frames, before conversion
-	// to time in seconds)
-	private List<Integer> onsetsFrames;
+    private AudioFile audiofile;
+    // this List should contain your results of the onset detection step (onset
+    // times in seconds)
+    private List<Double> onsets;
+    // this may contain your intermediate results (in frames, before conversion
+    // to time in seconds)
+    private List<Integer> onsetsFrames;
 
     List<Double> odfValues = new ArrayList<>();
     List<Double> localMaxValues = new ArrayList<>();
     List<Double> localMeanValues = new ArrayList<>();
 
-	public OnsetProcessor(AudioFile audiofile, List<Double> onsets, List<Integer> onsetsFrames) {
-		this.onsets = onsets;
-		this.onsetsFrames = onsetsFrames;
-		this.audiofile = audiofile;
-	}
+    public OnsetProcessor(AudioFile audiofile, List<Double> onsets, List<Integer> onsetsFrames) {
+        this.onsets = onsets;
+        this.onsetsFrames = onsetsFrames;
+        this.audiofile = audiofile;
+    }
 
     // This method is called from the Runner and is the starting point of your
     // onset detection / tempo extraction code
@@ -78,15 +78,15 @@ public class OnsetProcessor {
     }
 
     protected void logFiltSpecFlux() {
-    	boolean semitoneFilter = true;
+        boolean semitoneFilter = true;
 
         odfValues.add(0.0);
 
         final Function<double[], double[]> filter;
         if (semitoneFilter) {
-        	filter = new SemitoneFilter(audiofile.spectralDataContainer.get(0).size);
+            filter = new SemitoneFilter(audiofile.spectralDataContainer.get(0).size);
         } else {
-        	filter = Function.identity();
+            filter = Function.identity();
         }
 
         for (int frame = 1; frame < audiofile.spectralDataContainer.size(); frame++) {
@@ -286,7 +286,7 @@ public class OnsetProcessor {
     }
 
     public class SemitoneFilter implements Function<double[], double[]> {
-		private static final int BANDS = 12;
+        private static final int BANDS = 12;
         private final int bincount;
         private final double[][] weights;
         private final int[] binspans;
