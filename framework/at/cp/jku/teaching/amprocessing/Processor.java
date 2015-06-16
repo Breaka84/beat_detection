@@ -49,7 +49,7 @@ public class Processor {
 	private List<Integer> beatsFrames;
 	// min and max tempo to be considered
 	private int bpmMinimum, bpmMaximum;
-	
+
 	// original onsets (currently from the groundtruth file)
 	LinkedList<Double> detectedOnsets = new LinkedList<Double>();
 
@@ -79,44 +79,44 @@ public class Processor {
 	// This method is called from the Runner and is the starting point of your
 	// onset detection / tempo extraction code
 	public void analyze(String onsetGroundTruthFileName) {
-		
-		
-		System.out.println("Running Analysis...");
-		
-		analyzeOnsets();
-		
-		analyzeTempo(onsetGroundTruthFileName);
-		
-		analyzeBeats();
-		
 
-		
+
+		System.out.println("Running Analysis...");
+
+		analyzeOnsets();
+
+		analyzeTempo(onsetGroundTruthFileName);
+
+		analyzeBeats();
+
+
+
 	}
 
 	private void analyzeTempo(String onsetGroundTruthFileName) {
-		
+
 		System.out.println("Starting Tempo Analysis...");
-		
+
 		bpmMinimum = 40;
 		bpmMaximum = 230;
-		
 
-		
+
+
 		// IOIs (rounded to nearest 10ms) in ms
         LinkedList<Integer> detectedOnsetsIOIs = new LinkedList<Integer>();
-        
+
         // IOIs filtered by bpmMaximum and pbmMinimum in ms
         LinkedList<Integer> detectedOnsetsIOIsFiltered = new LinkedList<Integer>();
-        
+
         // List of most frequent IOIs in ms with their number of occurrences
         ArrayList<int[]> mostFrequentIOIs = new ArrayList<int[]>();
-        
+
 		// List of all potential IOIs in ms for TempoHypothesises
         ArrayList<Integer> potentialIOIsForTempoHypothesis = new ArrayList<Integer>();
-        
+
         // Score of TempoHypothesis with highest score
         int tempoHypothesisWithMaxScoreInPoints;
-        
+
         // copy onsetGroundTruth to detectedOnsets
         try {
             BufferedReader reader = new BufferedReader(new FileReader(onsetGroundTruthFileName));
@@ -130,26 +130,26 @@ public class Processor {
         } catch (IOException ex) {
             Logger.getLogger(Runner.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         for (int i =1; i < detectedOnsets.size(); i++) {
         	int ioi = (int)Math.round((detectedOnsets.get(i)-detectedOnsets.get(i-1))*100)*10;
         	detectedOnsetsIOIs.add(ioi);
         }
-        
+
         // Filtering the Onset IOIs by BPM Min & Max
         detectedOnsetsIOIsFiltered = filterLinkedList(detectedOnsetsIOIs, ((60*1000)/bpmMaximum)/2, (60*1000)/bpmMinimum);
-        
+
         // Get the most frequent IOIs
         mostFrequentIOIs = calculateMostFrequentOccurrences(detectedOnsetsIOIsFiltered, 5);
-        
-        // Collecting potential IOIs with their multiples 
+
+        // Collecting potential IOIs with their multiples
         for (int[] ioi : mostFrequentIOIs) {
         	if (ioi[0] > (60*1000)/bpmMaximum && ioi[0] < (60*1000)/bpmMinimum) {
         		potentialIOIsForTempoHypothesis.add(ioi[0]);
         	}
         	potentialIOIsForTempoHypothesis.addAll(getMultiples(ioi[0],((60*1000)/bpmMaximum), (60*1000)/bpmMinimum));
         }
-        
+
         // Generating TempoHypothesises from potential IOIs with startIndex from 0 to 8
         ArrayList<TempoHypothesis> tempoHypothesisContainer = new ArrayList<TempoHypothesis>();
         for (int potentialIOI : potentialIOIsForTempoHypothesis) {
@@ -158,11 +158,11 @@ public class Processor {
         	}
         }
 
-        // Processing all TempoHypothesises    
+        // Processing all TempoHypothesises
         for (TempoHypothesis currentHypothesis : tempoHypothesisContainer) {
         	currentHypothesis.process();
         }
-        
+
         // Finding TempoHypothesis with highest Score
         tempoHypothesisWithMaxScore         = tempoHypothesisContainer.get(0);
         tempoHypothesisWithMaxScoreInPoints = 0;
@@ -173,28 +173,28 @@ public class Processor {
         		tempoHypothesisWithMaxScoreInPoints = currentHypothesis.getScore();
         	}
         }
-                
+
         tempo = tempoHypothesisWithMaxScore.getTempo();
 	}
-	
+
 	private void analyzeBeats() {
-		
+
 		ArrayList<TempoHypothesis> tempoHypothesisContainer = new ArrayList<TempoHypothesis>();
-		
+
 		System.out.println("Starting Beats Analysis...");
 		beats.clear();
-		
+
 		TempoHypothesis tempoHypothesisForBeats = null;
 		int maxHitOnsets = 0;
-		
+
 		for (int i = 0; i < 7; i++) {
 			tempoHypothesisContainer.add(new TempoHypothesis(detectedOnsets, (60/(tempoHypothesisWithMaxScore.getTempo())*1000), i));
 			tempoHypothesisContainer.get(i).process();
 			if (tempoHypothesisContainer.get(i).getMissedOnsets() > maxHitOnsets) {
-				tempoHypothesisForBeats = tempoHypothesisContainer.get(i); 
+				tempoHypothesisForBeats = tempoHypothesisContainer.get(i);
 			}
 		}
-		
+
 		for (double beatTime : tempoHypothesisForBeats.getBeats()) {
 			//System.out.println(beatTime/1000);
 			beats.add(beatTime/1000);
@@ -202,41 +202,22 @@ public class Processor {
 	}
 
 	private void analyzeOnsets() {
-		
-		// This is a very simple kind of Onset Detector... You have to implement
-		// at least 2 more different onset detection functions
-		// have a look at the SpectralData Class - there you can also access the
-		// magnitude and the phase in each FFT bin...
-
-		System.out.println("Starting Onset Analysis...");
-		
-		for (int frame = 1; frame < audiofile.spectralDataContainer.size(); frame++) {
-			SpectralData previous = audiofile.spectralDataContainer.get(frame - 1);
-			SpectralData current = audiofile.spectralDataContainer.get(frame);
-			
-			// this does not even do smoothing, it just looks for large, finite, first order differences
-			double df = current.totalEnergy - previous.totalEnergy;
-
-			if (df > 22) {
-				onsetsFrames.add(frame);
-				onsets.add(frame * audiofile.hopTime);
-			}
-		}
+		new OnsetProcessor(audiofile, onsets, onsetsFrames).analyzeOnsets();
 	}
 
-	
+
     private static int[] calculateMostFrequentOccurrences(LinkedList<Integer> inputList) {
     	int[] mostFrequentElement = {0,0};
-    	
+
     	for (int element : inputList) {
     		int tempCount = 0;
-    	
+
     		for (int i = 0; i < inputList.size(); i++) {
     			if (inputList.get(i) == element) {
     				tempCount += 1;
     			}
     		}
-    		
+
     		if (tempCount > mostFrequentElement[1]) {
     			mostFrequentElement[0] = element;
     			mostFrequentElement[1] = tempCount;
@@ -244,14 +225,14 @@ public class Processor {
     	}
     	return mostFrequentElement;
     }
-    
+
     private static ArrayList<int[]> calculateMostFrequentOccurrences(LinkedList<Integer> inputList, int numberOfMostFrequentElements) {
     	ArrayList<int[]> listToReturn 			= new ArrayList<int[]>();
     	LinkedList<Integer> tempCopyOfInputList = new LinkedList<Integer>();
     	for (Integer element : inputList) {
     		tempCopyOfInputList.add(element);
     	}
-    	
+
     	for (int i = 0; i < numberOfMostFrequentElements; i++) {
     		int[] mostFrequentElement = calculateMostFrequentOccurrences(tempCopyOfInputList);
     		listToReturn.add(mostFrequentElement);
@@ -260,8 +241,8 @@ public class Processor {
     	listToReturn.removeIf(element -> element[0] == 0);
     	return listToReturn;
     }
-	
-	
+
+
 	private static LinkedList<Integer> filterLinkedList(LinkedList<Integer> inputList, int minimum, int maximum) {
 		LinkedList<Integer> listToReturn = new LinkedList<Integer>();
 		for (int element : inputList) {
@@ -273,7 +254,7 @@ public class Processor {
 
 	private ArrayList<Integer> getMultiples(int input, int min, int max) {
 		ArrayList<Integer> arrayToReturn = new ArrayList<Integer>();
-		
+
 		for (int i = 2; input/i > min; i++) {
 			if (input/i < max && input/i > min) { arrayToReturn.add(input/i); }
 			if (input/i*(i+1) < max && input/i*(i+1) > min) { arrayToReturn.add(input/i*(i+1)); }
