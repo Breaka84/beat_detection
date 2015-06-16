@@ -49,7 +49,7 @@ public class AudioFile {
     private double[] window;
     private double frameRMS;
     private int frameCount;
-    
+
     public double fftTime;
     public double hopTime;
     // Contains the Spectral Data (Magnitude, Phase, Unwrapped Phase) for each Frame
@@ -226,5 +226,9 @@ public class AudioFile {
             }
             spectralDataContainer.get(i).computeUnwrappedPhases(spectralDataContainer.get(i-1).unwrappedPhases);
         }
+    }
+
+    public float getSampleRate() {
+        return sampleRate;
     }
 }

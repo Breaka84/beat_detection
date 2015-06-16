@@ -286,7 +286,6 @@ public class OnsetProcessor {
     }
 
     public class SemitoneFilter implements Function<double[], double[]> {
-        private static final int SAMPLE_RATE = 44100;
 		private static final int BANDS = 12;
         private final int bincount;
         private final double[][] weights;
@@ -312,7 +311,7 @@ public class OnsetProcessor {
             }
 
             // now that we've got the frequencies, we need to map them to fft bins somehow
-            double halfsamplerate = SAMPLE_RATE / 2;
+            double halfsamplerate = audiofile.getSampleRate() / 2;
             double fftbinwidth = halfsamplerate / fftSize;
             List<Integer> binmapping = stf.stream().map(f -> (int) (f / fftbinwidth)).distinct().collect(Collectors.toList());
 
