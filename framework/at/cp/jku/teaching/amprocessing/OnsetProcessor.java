@@ -242,27 +242,6 @@ public class OnsetProcessor {
         peakPicking(0.2);
     }
 
-    @Deprecated
-    protected void onsetsSimple() {
-        // This is a very simple kind of Onset Detector... You have to implement
-        // at least 2 more different onset detection functions
-        // have a look at the SpectralData Class - there you can also access the
-        // magnitude and the phase in each FFT bin...
-
-        for (int frame = 1; frame < audiofile.spectralDataContainer.size(); frame++) {
-            SpectralData previous = audiofile.spectralDataContainer.get(frame - 1);
-            SpectralData current = audiofile.spectralDataContainer.get(frame);
-
-            // this does not even do smoothing, it just looks for large, finite, first order differences
-            double df = current.totalEnergy - previous.totalEnergy;
-
-            if (df > 15) {
-                onsetsFrames.add(frame);
-                onsets.add(frame * audiofile.hopTime);
-            }
-        }
-    }
-
     private boolean minDelayExceeded(int frame) {
         final int minDelay = 5;
         int lastFrame = onsetsFrames.isEmpty() ? -minDelay : onsetsFrames.get(onsetsFrames.size()-1);
@@ -293,7 +272,7 @@ public class OnsetProcessor {
 
         public SemitoneFilter(int fftSize) {
             // calculate semitone frequencies within (lbound, rbound) Hz
-            final double lbound = 20, rbound = 18000;
+            final double lbound = 27.5, rbound = 16000;
             final double a1 = 440; // Hz
 
             // octave is factor 2 apart, therefore:
@@ -335,7 +314,6 @@ public class OnsetProcessor {
                     double w_kb = binmid == k ? midval : midval * Math.abs(halfbinspan - Math.abs(binmid - k)) / halfbinspan;
                     assert w_kb >= 0.0 && w_kb <= midval : w_kb;
                     weights[k][binindex] = w_kb;
-                    //System.out.printf("k=%d,b=%d; w_kb=%f\n", k, binindex, w_kb);
                 }
                 binspans[binindex] = binspan;
             }
@@ -356,6 +334,7 @@ public class OnsetProcessor {
                     result[b] += wk[b] * mag;
                 }
             }
+            // normalization skipped
             return result;
         }
     }
