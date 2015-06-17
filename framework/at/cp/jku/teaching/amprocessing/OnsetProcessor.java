@@ -39,7 +39,7 @@ public class OnsetProcessor {
         logFiltSpecFlux();
         //highFreqContent();
 
-        System.out.println("onsets = " + onsets.stream().map(d -> String.format("%.2f", d)).collect(Collectors.toList()));
+        //System.out.println("onsets = " + onsets.stream().map(d -> String.format("%.2f", d)).collect(Collectors.toList()));
     }
 
     protected void adaptiveWhitening() {

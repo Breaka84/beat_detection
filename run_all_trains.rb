@@ -25,7 +25,7 @@ end
 fileNumbers = 1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,18,19,20
 fileNumbers.each do |nr|
   puts "###############################################################################################################################"
-  system "java -jar beat_detector.jar #{waveFileName(nr)} #{outputDir('results')} #{onsetFile(nr)} #{beatsFile(nr)} #{tempoFile(nr)}"  
+  system "java -jar exercise_track_group_f.jar #{waveFileName(nr)} #{outputDir('results')} #{onsetFile(nr)} #{beatsFile(nr)} #{tempoFile(nr)}"  
   sleep 0.5
 end
 
