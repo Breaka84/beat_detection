@@ -85,7 +85,7 @@ public class Processor {
 
 		analyzeOnsets();
 
-		analyzeTempo(onsetGroundTruthFileName);
+		analyzeTempo();
 
 		analyzeBeats();
 
@@ -93,13 +93,12 @@ public class Processor {
 
 	}
 
-	private void analyzeTempo(String onsetGroundTruthFileName) {
+	private void analyzeTempo() {
 
 		System.out.println("Starting Tempo Analysis...");
 
 		bpmMinimum = 40;
 		bpmMaximum = 230;
-
 
 
 		// IOIs (rounded to nearest 10ms) in ms
@@ -116,19 +115,9 @@ public class Processor {
 
         // Score of TempoHypothesis with highest score
         int tempoHypothesisWithMaxScoreInPoints;
-
-        // copy onsetGroundTruth to detectedOnsets
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(onsetGroundTruthFileName));
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                StringTokenizer st = new StringTokenizer(line);
-                detectedOnsets.add(Double.parseDouble(st.nextToken()));
-            }
-            reader.close();
-        } catch (IOException ex) {
-            Logger.getLogger(Runner.class.getName()).log(Level.SEVERE, null, ex);
+        
+        for (double onset : onsets) {
+        	detectedOnsets.add(onset);
         }
 
         for (int i =1; i < detectedOnsets.size(); i++) {
