@@ -190,7 +190,8 @@ public class Processor {
 		for (int i = 0; i < 7; i++) {
 			tempoHypothesisContainer.add(new TempoHypothesis(detectedOnsets, (60/(tempoHypothesisWithMaxScore.getTempo())*1000), i));
 			tempoHypothesisContainer.get(i).process();
-			if (tempoHypothesisContainer.get(i).getMissedOnsets() > maxHitOnsets) {
+			if (tempoHypothesisContainer.get(i).getHitOnsets() > maxHitOnsets) {
+				maxHitOnsets            = tempoHypothesisContainer.get(i).getHitOnsets();
 				tempoHypothesisForBeats = tempoHypothesisContainer.get(i);
 			}
 		}
@@ -257,11 +258,11 @@ public class Processor {
 
 		for (int i = 2; input/i > min; i++) {
 			if (input/i < max && input/i > min) { arrayToReturn.add(input/i); }
-			if (input/i*(i+1) < max && input/i*(i+1) > min) { arrayToReturn.add(input/i*(i+1)); }
+			//if (input/i*(i+1) < max && input/i*(i+1) > min) { arrayToReturn.add(input/i*(i+1)); }
 		}
 		for (int i = 2; input*i < max; i++) {
 			if (input*i < max && input*i > min) { arrayToReturn.add(input*i); }
-			if (input*i/(i+1) < max && input*i/(i+1) > min) { arrayToReturn.add(input*i/(i+1)); }
+			//if (input*i/(i+1) < max && input*i/(i+1) > min) { arrayToReturn.add(input*i/(i+1)); }
 		}
 		return arrayToReturn;
 	}

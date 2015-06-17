@@ -77,6 +77,10 @@ public class TempoHypothesis {
 	public int getMissedOnsets() {
 		return missedOnsets;
 	}
+
+	public int getHitOnsets() {
+		return hitOnsets;
+	}
 	
 	public ArrayList<Double> getBeats() {
 		return beats;
