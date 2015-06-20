@@ -23,6 +23,8 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import sun.security.util.Length;
+
 /**
  *
  * @author andreas arzt
@@ -112,6 +114,9 @@ public class Processor {
 
 		// List of all potential IOIs in ms for TempoHypothesises
         ArrayList<Integer> potentialIOIsForTempoHypothesis = new ArrayList<Integer>();
+        
+        // Lenght of OnsetList
+        int lenghtOfOnsets;
 
         // Score of TempoHypothesis with highest score
         int tempoHypothesisWithMaxScoreInPoints;
@@ -119,6 +124,8 @@ public class Processor {
         for (double onset : onsets) {
         	detectedOnsets.add(onset);
         }
+        
+        lenghtOfOnsets = detectedOnsets.size();
 
         for (int i =1; i < detectedOnsets.size(); i++) {
         	int ioi = (int)Math.round((detectedOnsets.get(i)-detectedOnsets.get(i-1))*100)*10;
@@ -138,11 +145,14 @@ public class Processor {
         	}
         	potentialIOIsForTempoHypothesis.addAll(getMultiples(ioi[0],((60*1000)/bpmMaximum), (60*1000)/bpmMinimum));
         }
+        potentialIOIsForTempoHypothesis.removeIf(ioi -> ioi == 0);
+        
+        
 
-        // Generating TempoHypothesises from potential IOIs with startIndex from 0 to 8
+        // Generating TempoHypothesises from potential IOIs with startIndex from 0 to 7
         ArrayList<TempoHypothesis> tempoHypothesisContainer = new ArrayList<TempoHypothesis>();
         for (int potentialIOI : potentialIOIsForTempoHypothesis) {
-        	for (int i = 0; i < 8; i++) {
+        	for (int i = 0; i < 8 && i < lenghtOfOnsets; i++) {
         		tempoHypothesisContainer.add(new TempoHypothesis(detectedOnsets, potentialIOI, i));
         	}
         }
@@ -174,14 +184,20 @@ public class Processor {
 		beats.clear();
 
 		TempoHypothesis tempoHypothesisForBeats = null;
-		int maxHitOnsets = 0;
+		int minMissedOnsets = 99999;
 
-		for (int i = 0; i < 7; i++) {
+		for (int i = 0; i < 7 && i < detectedOnsets.size()-1; i++) {
 			tempoHypothesisContainer.add(new TempoHypothesis(detectedOnsets, (60/(tempoHypothesisWithMaxScore.getTempo())*1000), i));
-			tempoHypothesisContainer.get(i).process();
-			if (tempoHypothesisContainer.get(i).getHitOnsets() > maxHitOnsets) {
-				maxHitOnsets            = tempoHypothesisContainer.get(i).getHitOnsets();
-				tempoHypothesisForBeats = tempoHypothesisContainer.get(i);
+		}
+		
+		tempoHypothesisContainer.forEach(hypothesis -> hypothesis.process());
+		
+		tempoHypothesisContainer.removeIf(hypothesis -> hypothesis.getBeats().isEmpty());
+		
+		for (TempoHypothesis hypothesis : tempoHypothesisContainer) {
+			if (hypothesis.getMissedOnsets() < minMissedOnsets) {
+				minMissedOnsets         = hypothesis.getMissedOnsets();
+				tempoHypothesisForBeats = hypothesis;
 			}
 		}
 

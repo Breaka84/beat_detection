@@ -5,7 +5,8 @@ import java.util.LinkedList;
 
 public class TempoHypothesis {
 	private ArrayList<Double> onsets = new ArrayList<Double>();
-	private ArrayList<Double> beats = new ArrayList<Double>();
+	private ArrayList<Double> beats  = new ArrayList<Double>();
+	private double lastOnsetTime;
 	private int hitOnsets, missedOnsets, steps, startIndex;
 	private double currentIBIGuess, cumulatedBeatTimeIntervals, initialIBIGuess;
 	
@@ -18,6 +19,7 @@ public class TempoHypothesis {
 		for (double element : inputList) {
 			onsets.add(element*1000);
 		}
+		lastOnsetTime        = onsets.get(onsets.size()-1);
 	}
 	
 	public void process() {
@@ -26,8 +28,7 @@ public class TempoHypothesis {
 		cumulatedBeatTimeIntervals = 0;
 		beats.clear();
 		
-		// loop for 28000 ms (28 seconds)
-		for (double currentBeatTime = onsets.get(startIndex); currentBeatTime < 28000;) {
+		for (double currentBeatTime = onsets.get(startIndex); currentBeatTime < (lastOnsetTime-(currentIBIGuess*1.01));) {
 			steps++;
 			double nextBeatTimeGuess = 0;
 			double nextBeatTime      = 0;
@@ -60,6 +61,7 @@ public class TempoHypothesis {
 			}
 			**/
 		}
+		
 	}
 	
 	public double getTempo() {
@@ -71,7 +73,7 @@ public class TempoHypothesis {
 	}
 	
 	public int getScore() {
-		return (hitOnsets*hitOnsets) - (missedOnsets*missedOnsets);
+		return hitOnsets - missedOnsets;
 	}
 	
 	public int getMissedOnsets() {
